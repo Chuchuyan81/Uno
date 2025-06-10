@@ -5,29 +5,142 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Игра UNO</title>
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
-            background-color: #2c3e50;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
             margin: 0;
             padding: 20px;
-            box-sizing: border-box;
             color: white;
+            overflow-x: hidden;
         }
-        #game-container {
-            width: 100%;
-            max-width: 800px;
+        
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+            letter-spacing: 2px;
+            background: linear-gradient(to right, #ff8a00, #da1b60);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
             margin-top: 20px;
         }
+        
         #setup-container {
-            margin-top: 20px;
+            background: rgba(25, 35, 60, 0.9);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            margin: 20px 0;
+            border: 2px solid #4a6fcb;
+        }
+        
+        #setup-container h2 {
+            margin-bottom: 20px;
+            color: #ffcc00;
+            font-size: 1.8rem;
+        }
+        
+        .input-group {
+            margin: 20px 0;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+            color: #aaccff;
+        }
+        
+        input[type="number"] {
+            width: 80px;
+            padding: 12px;
+            font-size: 1.2rem;
+            border-radius: 10px;
+            border: 2px solid #4a6fcb;
+            background: rgba(20, 30, 50, 0.8);
+            color: white;
             text-align: center;
         }
+        
+        button {
+            background: linear-gradient(to right, #ff8a00, #da1b60);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(218, 27, 96, 0.4);
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(218, 27, 96, 0.6);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        #game-container {
+            width: 100%;
+            max-width: 900px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .game-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .game-header h2 {
+            font-size: 2.2rem;
+            color: #ffcc00;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+            margin-bottom: 10px;
+        }
+        
+        .game-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
         #deck {
-            width: 100px;
-            height: 140px;
+            width: 120px;
+            height: 170px;
             background: repeating-linear-gradient(
                 45deg, 
                 #1a237e, 
@@ -35,27 +148,46 @@
                 #283593 10px, 
                 #283593 20px
             );
-            margin: 0 auto;
-            position: relative;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            border: 4px solid #fff;
             display: flex;
             justify-content: center;
             align-items: center;
-            color: white;
-            font-size: 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.2s;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            border: 2px solid #fff;
+            position: relative;
         }
+        
+        #deck:after {
+            content: 'DECK';
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+        
         #deck:active {
             transform: scale(0.95);
         }
+        
+        #discard-pile {
+            width: 120px;
+            height: 170px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
         .card {
-            width: 100px;
-            height: 140px;
+            width: 110px;
+            height: 160px;
             margin: 5px;
-            border-radius: 8px;
+            border-radius: 10px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -63,19 +195,23 @@
             font-size: 24px;
             color: white;
             cursor: pointer;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
             transition: transform 0.2s;
             position: relative;
             overflow: hidden;
             text-align: center;
             font-weight: bold;
         }
+        
         .card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-10px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
         }
+        
         .card:active {
             transform: translateY(0);
         }
+        
         .card::before {
             content: '';
             position: absolute;
@@ -83,13 +219,17 @@
             left: 0;
             right: 0;
             bottom: 0;
-            border-radius: 8px;
+            border-radius: 10px;
             z-index: -1;
         }
+        
         .card-value {
-            font-size: 32px;
-            margin-bottom: 5px;
+            font-size: 42px;
+            margin-bottom: 8px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
         }
+        
         .red { background-color: #e74c3c; }
         .red::before { background: linear-gradient(135deg, #e74c3c, #c0392b); }
         .blue { background-color: #3498db; }
@@ -98,115 +238,74 @@
         .green::before { background: linear-gradient(135deg, #2ecc71, #27ae60); }
         .yellow { background-color: #f1c40f; }
         .yellow::before { background: linear-gradient(135deg, #f1c40f, #f39c12); }
-        .black { background-color: #000; color: white; }
-        .black::before { background: linear-gradient(135deg, #333, #000); }
-        #discard-pile {
-            margin: 0 auto;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100px;
-            height: 140px;
-        }
+        .black { background-color: #2c3e50; color: white; }
+        .black::before { background: linear-gradient(135deg, #34495e, #2c3e50); }
+        
         #players {
             display: flex;
-            justify-content: space-around;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-        .player {
-            width: 150px;
-            text-align: center;
-            margin: 5px;
-            position: relative;
-            padding: 10px;
-            border-radius: 8px;
-            background-color: rgba(255,255,255,0.1);
-            transition: all 0.5s;
-        }
-        .player-turn {
-            animation: turnGlow 1.5s infinite;
-            transform: scale(1.05);
-        }
-        @keyframes turnGlow {
-            0% { box-shadow: 0 0 10px rgba(255,255,255,0.5); }
-            50% { box-shadow: 0 0 20px gold; }
-            100% { box-shadow: 0 0 10px rgba(255,255,255,0.5); }
-        }
-        .uno-button {
-            background-color: #e74c3c;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 10px;
-            display: none;
-        }
-        .uno-button:disabled {
-            background-color: #95aac9;
-            cursor: not-allowed;
-        }
-        #player-hand {
-            display: flex;
-            overflow-x: auto;
-            padding: 10px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-top: 20px;
-            flex-wrap: wrap;
             justify-content: center;
-            min-height: 160px;
-        }
-        .game-info {
-            margin-top: 10px;
-            text-align: center;
-            background-color: rgba(0,0,0,0.2);
-            padding: 10px;
-            border-radius: 8px;
+            flex-wrap: wrap;
+            gap: 25px;
+            margin-top: 20px;
         }
         
-        /* Диалог выбора цвета */
-        #color-picker {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: #34495e;
-            padding: 20px;
-            border-radius: 10px;
-            z-index: 100;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        .player {
+            width: 180px;
             text-align: center;
+            position: relative;
+            padding: 15px;
+            border-radius: 15px;
+            background: rgba(30, 40, 70, 0.8);
+            transition: all 0.5s;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+            border: 2px solid #4a6fcb;
         }
-        .color-option {
-            width: 50px;
-            height: 50px;
-            border: none;
-            border-radius: 50%;
-            margin: 10px;
-            cursor: pointer;
-            transition: transform 0.2s;
+        
+        .player-turn {
+            animation: turnGlow 1.5s infinite;
+            transform: scale(1.08);
+            border-color: #ffcc00;
+            box-shadow: 0 0 25px rgba(255, 204, 0, 0.7);
         }
-        .color-option:hover {
-            transform: scale(1.1);
+        
+        @keyframes turnGlow {
+            0% { box-shadow: 0 0 15px rgba(255, 204, 0, 0.5); }
+            50% { box-shadow: 0 0 30px rgba(255, 204, 0, 0.9); }
+            100% { box-shadow: 0 0 15px rgba(255, 204, 0, 0.5); }
         }
-        #color-red { background-color: #e74c3c; }
-        #color-blue { background-color: #3498db; }
-        #color-green { background-color: #2ecc71; }
-        #color-yellow { background-color: #f1c40f; }
-
+        
+        .player-info {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #aaccff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .player-name {
+            font-size: 1.3rem;
+            margin-bottom: 5px;
+            color: #ffcc00;
+        }
+        
+        .card-count {
+            background: rgba(20, 30, 50, 0.7);
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin-top: 5px;
+            display: inline-block;
+        }
+        
         .uno-indicator {
             display: inline-block;
-            background-color: #e74c3c;
+            background: linear-gradient(to right, #ff416c, #ff4b2b);
             color: white;
             font-weight: bold;
-            padding: 2px 8px;
-            border-radius: 10px;
-            margin-left: 5px;
+            padding: 4px 12px;
+            border-radius: 15px;
+            margin-top: 8px;
             animation: pulse 1.5s infinite;
         }
         
@@ -215,78 +314,243 @@
             50% { transform: scale(1.1); }
             100% { transform: scale(1); }
         }
-
+        
         .bot-thinking {
             position: relative;
+            color: #aaccff;
         }
+        
         .bot-thinking::after {
             content: '...';
             position: absolute;
             animation: dots 1.5s infinite;
         }
+        
         @keyframes dots {
             0%, 20% { content: '.'; }
             40% { content: '..'; }
             60%, 100% { content: '...'; }
         }
-
-        /* Стили для мобильных устройств */
+        
+        .card-animation {
+            position: fixed;
+            z-index: 1000;
+            transition: all 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+        }
+        
+        #player-hand {
+            display: flex;
+            overflow-x: auto;
+            padding: 20px 10px;
+            background: rgba(30, 40, 70, 0.8);
+            border-radius: 15px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+            margin-top: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+            min-height: 200px;
+            border: 2px solid #4a6fcb;
+        }
+        
+        .game-info {
+            margin-top: 20px;
+            text-align: center;
+            background: rgba(20, 30, 50, 0.7);
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            border: 1px solid #4a6fcb;
+        }
+        
+        .game-info p {
+            margin: 8px 0;
+            font-size: 1.2rem;
+            color: #aaccff;
+        }
+        
+        #current-player-info {
+            font-weight: bold;
+            color: #ffcc00;
+            font-size: 1.3rem;
+        }
+        
+        .uno-button {
+            background: linear-gradient(to right, #ff416c, #ff4b2b);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 20px;
+            display: none;
+            font-weight: bold;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(255, 75, 43, 0.4);
+            transition: all 0.3s;
+        }
+        
+        .uno-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 75, 43, 0.6);
+        }
+        
+        .uno-button:disabled {
+            background: #95aac9;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        #color-picker {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(30, 40, 70, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            z-index: 100;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+            text-align: center;
+            border: 3px solid #4a6fcb;
+        }
+        
+        #color-picker p {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            color: #ffcc00;
+        }
+        
+        .color-options {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .color-option {
+            width: 70px;
+            height: 70px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            border: 3px solid white;
+        }
+        
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+        
+        #color-red { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+        #color-blue { background: linear-gradient(135deg, #3498db, #2980b9); }
+        #color-green { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+        #color-yellow { background: linear-gradient(135deg, #f1c40f, #f39c12); }
+        
+        /* Адаптивность */
         @media screen and (max-width: 768px) {
-            #game-container {
-                width: 100%;
-                padding: 15px;
+            h1 {
+                font-size: 2.2rem;
             }
+            
+            .game-area {
+                gap: 20px;
+            }
+            
             #deck, #discard-pile {
-                width: 80px;
-                height: 120px;
-                font-size: 18px;
+                width: 90px;
+                height: 130px;
             }
+            
             .card {
-                width: 80px;
-                height: 120px;
-                font-size: 18px;
-                margin: 3px;
+                width: 85px;
+                height: 125px;
+                font-size: 20px;
             }
+            
             .card-value {
-                font-size: 26px;
+                font-size: 32px;
             }
-            #players {
-                flex-direction: column;
-                align-items: center;
-            }
+            
             .player {
-                margin-bottom: 10px;
-                width: 130px;
+                width: 140px;
+                padding: 10px;
             }
-            #player-hand {
-                overflow-x: auto;
-                white-space: nowrap;
+            
+            .player-name {
+                font-size: 1.1rem;
             }
-            .card {
-                display: inline-block;
-                margin: 2px;
+            
+            #color-picker {
+                width: 90%;
+                padding: 20px;
             }
+            
             .color-option {
-                width: 40px;
-                height: 40px;
-                margin: 5px;
+                width: 60px;
+                height: 60px;
+            }
+        }
+        
+        @media screen and (max-width: 480px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            #setup-container {
+                padding: 20px 15px;
+            }
+            
+            #deck, #discard-pile {
+                width: 75px;
+                height: 110px;
+            }
+            
+            .card {
+                width: 70px;
+                height: 100px;
+                margin: 3px;
+                font-size: 16px;
+            }
+            
+            .card-value {
+                font-size: 24px;
+                margin-bottom: 3px;
+            }
+            
+            .player {
+                width: 120px;
+            }
+            
+            .color-option {
+                width: 50px;
+                height: 50px;
             }
         }
     </style>
 </head>
 <body>
-    <h1>Игра UNO</h1>
+    <h1>ИГРА UNO</h1>
     
     <div id="setup-container">
         <h2>Настройки игры</h2>
-        <label for="player-count">Количество игроков (2-4):</label>
-        <input type="number" id="player-count" min="2" max="4" value="2">
+        <div class="input-group">
+            <label for="player-count">Количество игроков (2-4):</label>
+            <input type="number" id="player-count" min="2" max="4" value="2">
+        </div>
         <button onclick="startGame()">Начать игру</button>
     </div>
     
-    <div id="game-container" style="display:none">
-        <h2>Игра UNO</h2>
-        <div style="display: flex; justify-content: center; gap: 20px;">
+    <div id="game-container">
+        <div class="game-header">
+            <h2>ИГРА UNO</h2>
+        </div>
+        
+        <div class="game-area">
             <div id="deck" onclick="drawCard()"></div>
             <div id="discard-pile"></div>
         </div>
@@ -299,19 +563,22 @@
         <div id="players"></div>
         
         <div id="player-hand"></div>
-        <button id="uno-button" class="uno-button" disabled onclick="sayUno()">Сказать UNO</button>
+        <button id="uno-button" class="uno-button" disabled onclick="sayUno()">Сказать UNO!</button>
     </div>
     
     <!-- Диалог выбора цвета -->
     <div id="color-picker">
         <p>Выберите цвет:</p>
-        <button id="color-red" class="color-option" onclick="chooseColor('red')"></button>
-        <button id="color-blue" class="color-option" onclick="chooseColor('blue')"></button>
-        <button id="color-green" class="color-option" onclick="chooseColor('green')"></button>
-        <button id="color-yellow" class="color-option" onclick="chooseColor('yellow')"></button>
+        <div class="color-options">
+            <button id="color-red" class="color-option" onclick="chooseColor('red')"></button>
+            <button id="color-blue" class="color-option" onclick="chooseColor('blue')"></button>
+            <button id="color-green" class="color-option" onclick="chooseColor('green')"></button>
+            <button id="color-yellow" class="color-option" onclick="chooseColor('yellow')"></button>
+        </div>
     </div>
 
     <script>
+        // Игровые переменные
         let players = [];
         let currentPlayerIndex = 0;
         let direction = 1;
@@ -322,15 +589,18 @@
         let unoTimeout = null;
         let isGameActive = false;
         
+        // Константы
         const colors = ['red', 'blue', 'green', 'yellow'];
         const values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'reverse', 'skip', 'drawTwo'];
         const specialCards = ['wild', 'wildDrawFour'];
         
+        // Запуск игры
         function startGame() {
             isGameActive = true;
-            const playerCount = document.getElementById('player-count').value;
+            const playerCount = parseInt(document.getElementById('player-count').value);
             players = [];
             
+            // Создание игроков
             for (let i = 0; i < playerCount; i++) {
                 const playerName = i === 0 ? 'Вы' : `Бот ${i}`;
                 players.push({
@@ -342,6 +612,7 @@
                 });
             }
             
+            // Инициализация колоды
             initializeDeck();
             shuffleDeck();
             
@@ -354,9 +625,9 @@
                 }
             }
             
+            // Первая карта в сбросе
             if (deck.length > 0) {
                 let firstCard = deck.pop();
-                // Пропускаем черные карты как первую карту
                 while (firstCard.color === 'black' && deck.length > 0) {
                     deck.unshift(firstCard);
                     firstCard = deck.pop();
@@ -364,6 +635,7 @@
                 discardPile.push(firstCard);
             }
             
+            // Настройка интерфейса
             document.getElementById('setup-container').style.display = 'none';
             document.getElementById('game-container').style.display = 'block';
             
@@ -376,14 +648,17 @@
             
             highlightCurrentPlayer();
             
+            // Начало хода бота, если нужно
             if (!players[currentPlayerIndex].isHuman) {
                 setTimeout(() => botPlay(), 1500);
             }
         }
         
+        // Инициализация колоды
         function initializeDeck() {
             deck = [];
             
+            // Создание карт
             for (let color of colors) {
                 for (let value of values) {
                     const card = {
@@ -406,6 +681,7 @@
                 }
             }
             
+            // Специальные карты
             for (let i = 0; i < 4; i++) {
                 deck.push({
                     color: 'black', 
@@ -424,38 +700,27 @@
             }
         }
         
+        // Получение имени карты
         function getCardName(value) {
             const names = {
-                '0': '0',
-                '1': '1',
-                '2': '2',
-                '3': '3',
-                '4': '4',
-                '5': '5',
-                '6': '6',
-                '7': '7',
-                '8': '8',
-                '9': '9',
-                'reverse': 'Реверс',
-                'skip': 'Пропуск',
-                'drawTwo': '+2',
-                'wild': 'Дикий',
+                '0': '0', '1': '1', '2': '2', '3': '3', '4': '4', '5': '5', 
+                '6': '6', '7': '7', '8': '8', '9': '9', 'reverse': 'Реверс', 
+                'skip': 'Пропуск', 'drawTwo': '+2', 'wild': 'Дикий', 
                 'wildDrawFour': 'Дикий +4'
             };
             return names[value] || value;
         }
         
+        // Получение отображаемого значения
         function getDisplayValue(value) {
             const symbols = {
-                'reverse': '↺',
-                'skip': '⊘',
-                'drawTwo': '+2',
-                'wild': 'W',
-                'wildDrawFour': 'W+4'
+                'reverse': '↺', 'skip': '⊘', 'drawTwo': '+2', 
+                'wild': 'W', 'wildDrawFour': 'W+4'
             };
             return symbols[value] || value;
         }
         
+        // Перемешивание колоды
         function shuffleDeck() {
             for (let i = deck.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -463,6 +728,7 @@
             }
         }
         
+        // Отрисовка игроков
         function renderPlayers() {
             const playersContainer = document.getElementById('players');
             playersContainer.innerHTML = '';
@@ -475,10 +741,20 @@
                 }
                 
                 const playerInfo = document.createElement('div');
-                playerInfo.innerHTML = `${player.name} (${player.hand.length} карт)`;
+                playerInfo.className = 'player-info';
+                
+                const nameElement = document.createElement('div');
+                nameElement.className = 'player-name';
+                nameElement.textContent = player.name;
+                playerInfo.appendChild(nameElement);
+                
+                const countElement = document.createElement('div');
+                countElement.className = 'card-count';
+                countElement.textContent = `${player.hand.length} карт`;
+                playerInfo.appendChild(countElement);
                 
                 if (player.unoSaid) {
-                    const unoBadge = document.createElement('span');
+                    const unoBadge = document.createElement('div');
                     unoBadge.className = 'uno-indicator';
                     unoBadge.textContent = 'UNO!';
                     playerInfo.appendChild(unoBadge);
@@ -489,6 +765,7 @@
             });
         }
         
+        // Подсветка текущего игрока
         function highlightCurrentPlayer() {
             const playerElements = document.querySelectorAll('.player');
             playerElements.forEach((el, index) => {
@@ -500,11 +777,11 @@
             });
         }
         
+        // Отрисовка руки игрока
         function renderPlayerHand() {
             const playerHand = document.getElementById('player-hand');
             playerHand.innerHTML = '';
             
-            // Показываем карты только человеческого игрока
             const humanPlayer = players[0];
             
             humanPlayer.hand.forEach((card, index) => {
@@ -520,22 +797,21 @@
                 nameElement.textContent = card.name;
                 cardElement.appendChild(nameElement);
                 
-                // Карты кликабельны только во время хода человека
                 if (currentPlayerIndex === 0) {
                     cardElement.onclick = () => playCard(index);
                 } else {
+                    cardElement.style.opacity = '0.7';
                     cardElement.style.cursor = 'default';
                 }
                 
                 playerHand.appendChild(cardElement);
             });
             
-            // Показать или скрыть кнопку UNO (только для человека)
+            // Кнопка UNO
             if (currentPlayerIndex === 0 && humanPlayer.hand.length === 1 && !humanPlayer.unoSaid) {
                 document.getElementById('uno-button').style.display = 'block';
                 document.getElementById('uno-button').disabled = false;
                 
-                // Даем 5 секунд на нажатие кнопки UNO
                 clearTimeout(unoTimeout);
                 unoTimeout = setTimeout(() => {
                     if (humanPlayer.hand.length === 1 && !humanPlayer.unoSaid) {
@@ -548,6 +824,7 @@
             }
         }
         
+        // Обновление информации о игре
         function updateGameInfo() {
             const currentPlayerInfo = document.getElementById('current-player-info');
             const currentDirectionInfo = document.getElementById('current-direction-info');
@@ -558,6 +835,7 @@
                 currentDirectionInfo.textContent = 'Направление: против часовой стрелки';
         }
         
+        // Обновление стопки сброса
         function updateDiscardPile() {
             const discardPileElement = document.getElementById('discard-pile');
             discardPileElement.innerHTML = '';
@@ -580,8 +858,8 @@
             }
         }
         
+        // Взятие карты
         function drawCard() {
-            // Брать карту может только человек во время своего хода
             if (currentPlayerIndex === 0) {
                 const currentPlayer = players[currentPlayerIndex];
                 if (deck.length > 0 && currentPlayer.hand.length < 10) {
@@ -593,7 +871,6 @@
                         const drawnCard = deck.pop();
                         currentPlayer.hand.push(drawnCard);
                         
-                        // Сбрасываем UNO статус если карт стало больше 1
                         if (currentPlayer.hand.length > 1) {
                             currentPlayer.unoSaid = false;
                             currentPlayer.pendingUno = false;
@@ -607,9 +884,9 @@
             }
         }
         
+        // Перетасовка колоды
         function reshuffleDeck() {
             if (discardPile.length > 1) {
-                // Сохраняем верхнюю карту
                 const topCard = discardPile.pop();
                 deck = [...discardPile];
                 discardPile = [topCard];
@@ -617,8 +894,8 @@
             }
         }
         
+        // Игра карты
         function playCard(index) {
-            // Играть карту может только человек во время своего хода
             if (currentPlayerIndex === 0) {
                 const currentPlayer = players[currentPlayerIndex];
                 const card = currentPlayer.hand[index];
@@ -630,7 +907,6 @@
                     card.color === 'black' || 
                     (topCard.color === 'black' && card.type === 'special')
                 ) {
-                    // Для черных карт (Wild) показываем диалог выбора цвета
                     if (card.color === 'black') {
                         pendingWildCard = card;
                         pendingCardIndex = index;
@@ -638,26 +914,60 @@
                         return;
                     }
                     
-                    completeCardPlay(index, card);
+                    animateCardPlay(card, index);
                 } else {
-                    // Игрок не может походить, поэтому он берет карту из колоды
                     drawCard();
                 }
             }
         }
         
+        // Анимация игры карты
+        function animateCardPlay(card, index) {
+            const currentPlayer = players[currentPlayerIndex];
+            const playerHand = document.getElementById('player-hand');
+            const cardElement = playerHand.children[index];
+            
+            // Создаем элемент для анимации
+            const animationCard = document.createElement('div');
+            animationCard.className = `card ${card.color} card-animation`;
+            animationCard.innerHTML = `
+                <div class="card-value">${card.displayValue}</div>
+                <div>${card.name}</div>
+            `;
+            
+            // Позиционируем
+            const cardRect = cardElement.getBoundingClientRect();
+            animationCard.style.left = `${cardRect.left}px`;
+            animationCard.style.top = `${cardRect.top}px`;
+            document.body.appendChild(animationCard);
+            
+            // Начало анимации
+            setTimeout(() => {
+                const discardRect = document.getElementById('discard-pile').getBoundingClientRect();
+                
+                animationCard.style.left = `${discardRect.left}px`;
+                animationCard.style.top = `${discardRect.top}px`;
+                animationCard.style.transform = 'scale(1.1)';
+                
+                setTimeout(() => {
+                    animationCard.remove();
+                    completeCardPlay(index, card);
+                }, 700);
+            }, 10);
+        }
+        
+        // Завершение игры карты
         function completeCardPlay(index, card) {
             const currentPlayer = players[currentPlayerIndex];
             currentPlayer.hand.splice(index, 1);
             discardPile.push(card);
             updateDiscardPile();
             
-            // Обработка статуса UNO
+            // Обработка UNO
             if (currentPlayer.hand.length === 1 && !currentPlayer.unoSaid) {
                 if (currentPlayer.isHuman) {
                     currentPlayer.pendingUno = true;
                 } else {
-                    // Бот автоматически говорит UNO
                     currentPlayer.unoSaid = true;
                     setTimeout(() => {
                         alert(`${currentPlayer.name} сказал UNO!`);
@@ -669,8 +979,10 @@
                 currentPlayer.pendingUno = false;
             }
             
+            // Обработка действий карт
             handleCardAction(card);
             
+            // Проверка победы
             if (currentPlayer.hand.length === 0) {
                 alert(`${currentPlayer.name} выиграл!`);
                 document.getElementById('setup-container').style.display = 'block';
@@ -687,23 +999,25 @@
             renderPlayerHand();
             updateGameInfo();
             
+            // Ход бота
             if (!players[currentPlayerIndex].isHuman) {
-                // Добавляем задержку перед ходом бота (1-2 секунды)
                 const delay = 1000 + Math.random() * 1000;
                 setTimeout(() => botPlay(), delay);
             }
         }
         
+        // Выбор цвета
         function chooseColor(color) {
             if (pendingWildCard) {
                 pendingWildCard.color = color;
                 document.getElementById('color-picker').style.display = 'none';
-                completeCardPlay(pendingCardIndex, pendingWildCard);
+                animateCardPlay(pendingWildCard, pendingCardIndex);
                 pendingWildCard = null;
                 pendingCardIndex = -1;
             }
         }
         
+        // Обработка действий карт
         function handleCardAction(card) {
             if (card.type === 'action') {
                 if (card.value === 'reverse') {
@@ -727,6 +1041,7 @@
             }
         }
         
+        // Взятие карты игроком
         function drawCardForPlayer(playerIndex) {
             const player = players[playerIndex];
             if (player.hand.length < 10) {
@@ -738,16 +1053,13 @@
                     const drawnCard = deck.pop();
                     player.hand.push(drawnCard);
                     
-                    // Сбрасываем UNO статус если карт стало больше 1
                     if (player.hand.length > 1) {
                         player.unoSaid = false;
                         player.pendingUno = false;
                     }
                     
-                    // Обновляем отображение количества карт
                     renderPlayers();
                     
-                    // Обновляем руку если это человек
                     if (playerIndex === 0) {
                         renderPlayerHand();
                     }
@@ -755,8 +1067,8 @@
             }
         }
         
+        // Сказать UNO
         function sayUno() {
-            // Сказать UNO может только человек во время своего хода
             if (currentPlayerIndex === 0) {
                 const currentPlayer = players[currentPlayerIndex];
                 if (currentPlayer.hand.length === 1 && !currentPlayer.unoSaid) {
@@ -764,25 +1076,24 @@
                     currentPlayer.pendingUno = false;
                     document.getElementById('uno-button').disabled = true;
                     renderPlayers();
-                    alert("UNO! Вы успешно сказали UNO!");
                     
-                    // Отменяем таймер штрафа
                     clearTimeout(unoTimeout);
                 }
             }
         }
         
+        // Ход бота
         function botPlay() {
             if (!isGameActive) return;
             
             const botPlayer = players[currentPlayerIndex];
             const topCard = discardPile.length > 0 ? discardPile[discardPile.length - 1] : null;
             
-            // Добавляем эффект "размышления" бота
+            // Эффект "размышления"
             const playerElement = document.querySelectorAll('.player')[currentPlayerIndex];
             playerElement.classList.add('bot-thinking');
             
-            // Проверка на штраф за UNO
+            // Проверка UNO
             if (botPlayer.pendingUno) {
                 botPlayer.unoSaid = true;
                 botPlayer.pendingUno = false;
@@ -792,12 +1103,11 @@
                 }, 500);
             }
             
-            // Задержка перед ходом бота (имитация размышления)
+            // Задержка перед ходом
             setTimeout(() => {
                 playerElement.classList.remove('bot-thinking');
                 
                 if (topCard) {
-                    // Находим все карты, которые можно сыграть
                     const playableCards = botPlayer.hand.filter(card => {
                         return (
                             card.color === topCard.color || 
@@ -808,7 +1118,6 @@
                     });
                     
                     if (playableCards.length > 0) {
-                        // Предпочитаем обычные карты перед черными
                         const nonBlackCards = playableCards.filter(card => card.color !== 'black');
                         const cardsToUse = nonBlackCards.length > 0 ? nonBlackCards : playableCards;
                         
@@ -816,49 +1125,13 @@
                         const card = cardsToUse[randomIndex];
                         const cardIndex = botPlayer.hand.indexOf(card);
                         
-                        // Если бот играет черную карту - выбираем случайный цвет
                         if (card.color === 'black') {
                             card.color = colors[Math.floor(Math.random() * colors.length)];
                         }
                         
-                        botPlayer.hand.splice(cardIndex, 1);
-                        discardPile.push(card);
-                        updateDiscardPile();
-                        
-                        // Обработка статуса UNO
-                        if (botPlayer.hand.length === 1 && !botPlayer.unoSaid) {
-                            botPlayer.unoSaid = true;
-                            setTimeout(() => {
-                                alert(`${botPlayer.name} сказал UNO!`);
-                                renderPlayers();
-                            }, 500);
-                        } else if (botPlayer.hand.length > 1) {
-                            botPlayer.unoSaid = false;
-                            botPlayer.pendingUno = false;
-                        }
-                        
-                        handleCardAction(card);
-                        
-                        if (botPlayer.hand.length === 0) {
-                            alert(`${botPlayer.name} выиграл!`);
-                            document.getElementById('setup-container').style.display = 'block';
-                            document.getElementById('game-container').style.display = 'none';
-                            isGameActive = false;
-                            return;
-                        }
-                        
-                        currentPlayerIndex = (currentPlayerIndex + direction + players.length) % players.length;
-                        highlightCurrentPlayer();
-                        renderPlayers();
-                        updateGameInfo();
-                        
-                        if (!players[currentPlayerIndex].isHuman) {
-                            setTimeout(() => botPlay(), 1000 + Math.random() * 1000);
-                        } else {
-                            renderPlayerHand();
-                        }
+                        // Анимация для бота
+                        animateBotCardPlay(card, cardIndex);
                     } else {
-                        // Если нет подходящих карт - берем карту из колоды
                         drawCardForBot();
                     }
                 } else {
@@ -867,10 +1140,91 @@
             }, 1000);
         }
         
+        // Анимация игры карты бота
+        function animateBotCardPlay(card, cardIndex) {
+            const botPlayer = players[currentPlayerIndex];
+            const playerElements = document.querySelectorAll('.player');
+            const playerElement = playerElements[currentPlayerIndex];
+            
+            // Создаем элемент для анимации
+            const animationCard = document.createElement('div');
+            animationCard.className = `card ${card.color} card-animation`;
+            animationCard.innerHTML = `
+                <div class="card-value">${card.displayValue}</div>
+                <div>${card.name}</div>
+            `;
+            
+            // Позиционируем над ботом
+            const playerRect = playerElement.getBoundingClientRect();
+            animationCard.style.left = `${playerRect.left + playerRect.width/2 - 55}px`;
+            animationCard.style.top = `${playerRect.top - 100}px`;
+            document.body.appendChild(animationCard);
+            
+            // Начало анимации
+            setTimeout(() => {
+                const discardRect = document.getElementById('discard-pile').getBoundingClientRect();
+                
+                animationCard.style.left = `${discardRect.left}px`;
+                animationCard.style.top = `${discardRect.top}px`;
+                animationCard.style.transform = 'scale(1.1)';
+                
+                setTimeout(() => {
+                    animationCard.remove();
+                    completeBotCardPlay(card, cardIndex);
+                }, 700);
+            }, 10);
+        }
+        
+        // Завершение игры карты бота
+        function completeBotCardPlay(card, cardIndex) {
+            const botPlayer = players[currentPlayerIndex];
+            botPlayer.hand.splice(cardIndex, 1);
+            discardPile.push(card);
+            updateDiscardPile();
+            
+            // Обработка UNO
+            if (botPlayer.hand.length === 1 && !botPlayer.unoSaid) {
+                botPlayer.unoSaid = true;
+                setTimeout(() => {
+                    alert(`${botPlayer.name} сказал UNO!`);
+                    renderPlayers();
+                }, 500);
+            } else if (botPlayer.hand.length > 1) {
+                botPlayer.unoSaid = false;
+                botPlayer.pendingUno = false;
+            }
+            
+            // Обработка действий карт
+            handleCardAction(card);
+            
+            // Проверка победы
+            if (botPlayer.hand.length === 0) {
+                alert(`${botPlayer.name} выиграл!`);
+                document.getElementById('setup-container').style.display = 'block';
+                document.getElementById('game-container').style.display = 'none';
+                isGameActive = false;
+                return;
+            }
+            
+            // Переход хода
+            currentPlayerIndex = (currentPlayerIndex + direction + players.length) % players.length;
+            highlightCurrentPlayer();
+            renderPlayers();
+            updateGameInfo();
+            
+            // Следующий ход
+            if (!players[currentPlayerIndex].isHuman) {
+                const delay = 1000 + Math.random() * 1000;
+                setTimeout(() => botPlay(), delay);
+            } else {
+                renderPlayerHand();
+            }
+        }
+        
+        // Взятие карты ботом
         function drawCardForBot() {
             drawCardForPlayer(currentPlayerIndex);
             
-            // Проверяем, можно ли сыграть только что взятую карту
             const botPlayer = players[currentPlayerIndex];
             const topCard = discardPile.length > 0 ? discardPile[discardPile.length - 1] : null;
             const lastCard = botPlayer.hand[botPlayer.hand.length - 1];
@@ -881,50 +1235,24 @@
                 lastCard.color === 'black' || 
                 (topCard.color === 'black' && lastCard.type === 'special')
             )) {
-                // Играем последнюю взятую карту
                 const cardIndex = botPlayer.hand.length - 1;
                 
                 if (lastCard.color === 'black') {
                     lastCard.color = colors[Math.floor(Math.random() * colors.length)];
                 }
                 
-                botPlayer.hand.splice(cardIndex, 1);
-                discardPile.push(lastCard);
-                updateDiscardPile();
-                
-                // Обработка статуса UNO
-                if (botPlayer.hand.length === 1 && !botPlayer.unoSaid) {
-                    botPlayer.unoSaid = true;
-                    setTimeout(() => {
-                        alert(`${botPlayer.name} сказал UNO!`);
-                        renderPlayers();
-                    }, 500);
-                } else if (botPlayer.hand.length > 1) {
-                    botPlayer.unoSaid = false;
-                    botPlayer.pendingUno = false;
-                }
-                
-                handleCardAction(lastCard);
-                
-                if (botPlayer.hand.length === 0) {
-                    alert(`${botPlayer.name} выиграл!`);
-                    document.getElementById('setup-container').style.display = 'block';
-                    document.getElementById('game-container').style.display = 'none';
-                    isGameActive = false;
-                    return;
-                }
-            }
-            
-            // Переход хода
-            currentPlayerIndex = (currentPlayerIndex + direction + players.length) % players.length;
-            highlightCurrentPlayer();
-            renderPlayers();
-            updateGameInfo();
-            
-            if (!players[currentPlayerIndex].isHuman) {
-                setTimeout(() => botPlay(), 1000 + Math.random() * 1000);
+                animateBotCardPlay(lastCard, cardIndex);
             } else {
-                renderPlayerHand();
+                currentPlayerIndex = (currentPlayerIndex + direction + players.length) % players.length;
+                highlightCurrentPlayer();
+                renderPlayers();
+                updateGameInfo();
+                
+                if (!players[currentPlayerIndex].isHuman) {
+                    setTimeout(() => botPlay(), 1000 + Math.random() * 1000);
+                } else {
+                    renderPlayerHand();
+                }
             }
         }
     </script>
