@@ -567,8 +567,8 @@
     <div id="setup-container">
         <h2>Настройки игры</h2>
         <div class="input-group">
-            <label for="player-count">Количество игроков (2-4):</label>
-            <input type="number" id="player-count" min="2" max="4" value="2">
+            <label for="player-count">Количество игроков (2-10):</label>
+            <input type="number" id="player-count" min="2" max="10" value="2">
         </div>
         <button onclick="startGame()">Начать игру</button>
     </div>
@@ -617,10 +617,8 @@
         let unoTimeout = null;
         let isGameActive = false;
         
-        // Константы
+        // Константы для игры UNO
         const colors = ['red', 'blue', 'green', 'yellow'];
-        const values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'reverse', 'skip', 'drawTwo'];
-        const specialCards = ['wild', 'wildDrawFour'];
         
         // Запуск игры
         function startGame() {
@@ -682,50 +680,91 @@
             }
         }
         
-        // Инициализация колоды
+        // Инициализация колоды согласно официальным правилам UNO (108 карт)
         function initializeDeck() {
             deck = [];
             
-            // Создание карт
+            // Создание цветных карт для каждого цвета (красный, синий, зеленый, желтый)
             for (let color of colors) {
-                for (let value of values) {
-                    const card = {
+                // Одна карта "0" для каждого цвета
+                deck.push({
+                    color: color,
+                    value: '0',
+                    type: 'numbered',
+                    name: getCardName('0'),
+                    displayValue: getDisplayValue('0')
+                });
+                
+                // Две карты для цифр 1-9 для каждого цвета
+                for (let num = 1; num <= 9; num++) {
+                    for (let copy = 0; copy < 2; copy++) {
+                        deck.push({
+                            color: color,
+                            value: num.toString(),
+                            type: 'numbered',
+                            name: getCardName(num.toString()),
+                            displayValue: getDisplayValue(num.toString())
+                        });
+                    }
+                }
+                
+                // Две карты Skip для каждого цвета
+                for (let copy = 0; copy < 2; copy++) {
+                    deck.push({
                         color: color,
-                        value: value,
-                        type: 'numbered',
-                        name: getCardName(value),
-                        displayValue: getDisplayValue(value)
-                    };
-                    
-                    deck.push(card);
-                    
-                    if (value !== '0') {
-                        deck.push({...card});
-                    }
-                    
-                    if (value === 'reverse' || value === 'skip' || value === 'drawTwo') {
-                        card.type = 'action';
-                    }
+                        value: 'skip',
+                        type: 'action',
+                        name: getCardName('skip'),
+                        displayValue: getDisplayValue('skip')
+                    });
+                }
+                
+                // Две карты Reverse для каждого цвета
+                for (let copy = 0; copy < 2; copy++) {
+                    deck.push({
+                        color: color,
+                        value: 'reverse',
+                        type: 'action',
+                        name: getCardName('reverse'),
+                        displayValue: getDisplayValue('reverse')
+                    });
+                }
+                
+                // Две карты Draw Two для каждого цвета
+                for (let copy = 0; copy < 2; copy++) {
+                    deck.push({
+                        color: color,
+                        value: 'drawTwo',
+                        type: 'action',
+                        name: getCardName('drawTwo'),
+                        displayValue: getDisplayValue('drawTwo')
+                    });
                 }
             }
             
-            // Специальные карты
+            // 4 карты Wild (дикие)
             for (let i = 0; i < 4; i++) {
                 deck.push({
                     color: 'black', 
-                    value: specialCards[0], 
+                    value: 'wild', 
                     type: 'special', 
                     name: 'Дикий',
                     displayValue: 'W'
                 });
+            }
+            
+            // 4 карты Wild Draw Four (дикие +4)
+            for (let i = 0; i < 4; i++) {
                 deck.push({
                     color: 'black', 
-                    value: specialCards[1], 
+                    value: 'wildDrawFour', 
                     type: 'special', 
                     name: 'Дикий +4',
                     displayValue: 'W+4'
                 });
             }
+            
+            console.log(`Колода создана: ${deck.length} карт`); // Должно быть 108 карт
         }
         
         // Получение имени карты
@@ -886,40 +925,92 @@
             }
         }
         
-        // Взятие карты
+        // Взятие карты согласно правилам UNO
         function drawCard() {
             if (currentPlayerIndex === 0) {
                 const currentPlayer = players[currentPlayerIndex];
-                // Убираем ограничение на 10 карт - игрок может взять сколько угодно
+                
+                if (deck.length === 0) {
+                    reshuffleDeck();
+                }
+                
                 if (deck.length > 0) {
-                    if (deck.length === 0) {
-                        reshuffleDeck();
+                    const drawnCard = deck.pop();
+                    currentPlayer.hand.push(drawnCard);
+                    
+                    if (currentPlayer.hand.length > 1) {
+                        currentPlayer.unoSaid = false;
+                        currentPlayer.pendingUno = false;
+                        document.getElementById('uno-button').style.display = 'none';
                     }
                     
-                    if (deck.length > 0) {
-                        const drawnCard = deck.pop();
-                        currentPlayer.hand.push(drawnCard);
-                        
-                        if (currentPlayer.hand.length > 1) {
-                            currentPlayer.unoSaid = false;
-                            currentPlayer.pendingUno = false;
-                            document.getElementById('uno-button').style.display = 'none';
+                    renderPlayerHand();
+                    renderPlayers();
+                    
+                    // Проверяем, может ли игрок сыграть взятую карту
+                    const topCard = discardPile.length > 0 ? discardPile[discardPile.length - 1] : null;
+                    if (topCard && canPlayCard(drawnCard, topCard, currentPlayer)) {
+                        // Подсвечиваем карту, которую можно сыграть
+                        const playerHand = document.getElementById('player-hand');
+                        const lastCardElement = playerHand.lastElementChild;
+                        if (lastCardElement) {
+                            lastCardElement.style.border = '3px solid #ffcc00';
+                            lastCardElement.style.animation = 'pulse 1s infinite';
+                            
+                            // Добавляем подсказку
+                            setTimeout(() => {
+                                alert('Вы можете сыграть взятую карту!');
+                            }, 500);
                         }
-                        
-                        renderPlayerHand();
-                        renderPlayers();
+                    } else {
+                        // Если взятая карта не может быть сыграна, ход переходит дальше
+                        setTimeout(() => {
+                            nextTurn();
+                        }, 1000);
                     }
                 }
             }
         }
         
-        // Перетасовка колоды
+        // Функция перехода к следующему ходу
+        function nextTurn() {
+            currentPlayerIndex = (currentPlayerIndex + direction + players.length) % players.length;
+            highlightCurrentPlayer();
+            renderPlayers();
+            renderPlayerHand();
+            updateGameInfo();
+            
+            if (!players[currentPlayerIndex].isHuman) {
+                const delay = 1000 + Math.random() * 1000;
+                setTimeout(() => botPlay(), delay);
+            }
+        }
+        
+        // Перетасовка колоды согласно правилам UNO
         function reshuffleDeck() {
             if (discardPile.length > 1) {
-                const topCard = discardPile.pop();
-                deck = [...discardPile];
+                console.log('Колода закончилась. Перетасовываем сброс...');
+                const topCard = discardPile.pop(); // Оставляем верхнюю карту сброса
+                
+                // Берем все сброшенные карты кроме верхней
+                const cardsToShuffle = [...discardPile];
+                
+                // Сбрасываем цвет у диких карт
+                cardsToShuffle.forEach(card => {
+                    if (card.value === 'wild' || card.value === 'wildDrawFour') {
+                        card.color = 'black';
+                        delete card.chosenColor;
+                    }
+                });
+                
+                // Создаем новую колоду из сброшенных карт
+                deck = cardsToShuffle;
                 discardPile = [topCard];
                 shuffleDeck();
+                
+                console.log(`Новая колода: ${deck.length} карт`);
+            } else {
+                console.log('Недостаточно карт для перетасовки!');
             }
         }
         
@@ -930,12 +1021,8 @@
                 const card = currentPlayer.hand[index];
                 const topCard = discardPile.length > 0 ? discardPile[discardPile.length - 1] : null;
                 
-                if (!topCard || 
-                    card.color === topCard.color || 
-                    card.value === topCard.value || 
-                    card.color === 'black' || 
-                    (topCard.color === 'black' && card.type === 'special')
-                ) {
+                // Проверяем возможность сыграть карту
+                if (canPlayCard(card, topCard, currentPlayer)) {
                     if (card.color === 'black') {
                         pendingWildCard = card;
                         pendingCardIndex = index;
@@ -945,9 +1032,38 @@
                     
                     animateCardPlay(card, index);
                 } else {
-                    drawCard();
+                    // Если карта не может быть сыграна, показываем сообщение
+                    if (card.value === 'wildDrawFour') {
+                        alert('Wild Draw Four можно играть только если у вас нет карт текущего цвета!');
+                    }
                 }
             }
+        }
+        
+        // Функция проверки возможности сыграть карту согласно правилам UNO
+        function canPlayCard(card, topCard, player) {
+            if (!topCard) return true;
+            
+            // Обычные правила для цветных карт
+            if (card.color === topCard.color || card.value === topCard.value) {
+                return true;
+            }
+            
+            // Wild карта может быть сыграна всегда
+            if (card.value === 'wild') {
+                return true;
+            }
+            
+            // Wild Draw Four может быть сыграна только если у игрока нет карт текущего цвета
+            if (card.value === 'wildDrawFour') {
+                const currentColor = topCard.color === 'black' ? topCard.chosenColor || topCard.color : topCard.color;
+                const hasCurrentColorCard = player.hand.some(handCard => 
+                    handCard.color === currentColor && handCard !== card
+                );
+                return !hasCurrentColorCard;
+            }
+            
+            return false;
         }
         
         // Анимация игры карты
@@ -1003,8 +1119,22 @@
             // Обработка UNO
             if (currentPlayer.hand.length === 1 && !currentPlayer.unoSaid) {
                 if (currentPlayer.isHuman) {
+                    // Даем игроку время сказать UNO
                     currentPlayer.pendingUno = true;
+                    setTimeout(() => {
+                        if (currentPlayer.hand.length === 1 && !currentPlayer.unoSaid && currentPlayer.pendingUno) {
+                            // Игрок забыл сказать UNO - штраф 2 карты
+                            alert(`${currentPlayer.name} забыл сказать UNO! Штраф: +2 карты`);
+                            for (let i = 0; i < 2; i++) {
+                                drawCardForPlayer(currentPlayerIndex);
+                            }
+                            currentPlayer.pendingUno = false;
+                            renderPlayerHand();
+                            renderPlayers();
+                        }
+                    }, 3000); // 3 секунды на то чтобы сказать UNO
                 } else {
+                    // Боты автоматически говорят UNO
                     currentPlayer.unoSaid = true;
                     setTimeout(() => {
                         alert(`${currentPlayer.name} сказал UNO!`);
@@ -1043,10 +1173,12 @@
             }
         }
         
-        // Выбор цвета
+        // Выбор цвета для диких карт
         function chooseColor(color) {
             if (pendingWildCard) {
-                pendingWildCard.color = color;
+                // Сохраняем выбранный цвет
+                pendingWildCard.chosenColor = color;
+                pendingWildCard.color = color; // Временно меняем цвет для проверок
                 document.getElementById('color-picker').style.display = 'none';
                 animateCardPlay(pendingWildCard, pendingCardIndex);
                 pendingWildCard = null;
@@ -1144,25 +1276,48 @@
                 playerElement.classList.remove('bot-thinking');
                 
                 if (topCard) {
+                    // Используем ту же логику проверки карт, что и для игрока
                     const playableCards = botPlayer.hand.filter(card => {
-                        return (
-                            card.color === topCard.color || 
-                            card.value === topCard.value || 
-                            card.color === 'black' || 
-                            (topCard.color === 'black' && card.type === 'special')
-                        );
+                        return canPlayCard(card, topCard, botPlayer);
                     });
                     
                     if (playableCards.length > 0) {
-                        const nonBlackCards = playableCards.filter(card => card.color !== 'black');
-                        const cardsToUse = nonBlackCards.length > 0 ? nonBlackCards : playableCards;
+                        // Боты предпочитают обычные карты специальным
+                        const numberedCards = playableCards.filter(card => card.type === 'numbered');
+                        const actionCards = playableCards.filter(card => card.type === 'action');
+                        const specialCards = playableCards.filter(card => card.type === 'special');
+                        
+                        let cardsToUse;
+                        if (numberedCards.length > 0) {
+                            cardsToUse = numberedCards;
+                        } else if (actionCards.length > 0) {
+                            cardsToUse = actionCards;
+                        } else {
+                            cardsToUse = specialCards;
+                        }
                         
                         const randomIndex = Math.floor(Math.random() * cardsToUse.length);
                         const card = cardsToUse[randomIndex];
                         const cardIndex = botPlayer.hand.indexOf(card);
                         
+                        // Если это дикая карта, выбираем цвет
                         if (card.color === 'black') {
-                            card.color = colors[Math.floor(Math.random() * colors.length)];
+                            // Бот выбирает цвет, которого у него больше всего
+                            const colorCounts = {};
+                            colors.forEach(color => colorCounts[color] = 0);
+                            
+                            botPlayer.hand.forEach(handCard => {
+                                if (colors.includes(handCard.color)) {
+                                    colorCounts[handCard.color]++;
+                                }
+                            });
+                            
+                            const bestColor = Object.keys(colorCounts).reduce((a, b) => 
+                                colorCounts[a] > colorCounts[b] ? a : b
+                            );
+                            
+                            card.chosenColor = bestColor;
+                            card.color = bestColor;
                         }
                         
                         // Анимация для бота
@@ -1265,12 +1420,7 @@
             const topCard = discardPile.length > 0 ? discardPile[discardPile.length - 1] : null;
             const lastCard = botPlayer.hand[botPlayer.hand.length - 1];
             
-            if (topCard && lastCard && (
-                lastCard.color === topCard.color || 
-                lastCard.value === topCard.value || 
-                lastCard.color === 'black' || 
-                (topCard.color === 'black' && lastCard.type === 'special')
-            )) {
+            if (topCard && lastCard && canPlayCard(lastCard, topCard, botPlayer)) {
                 const cardIndex = botPlayer.hand.length - 1;
                 
                 if (lastCard.color === 'black') {
