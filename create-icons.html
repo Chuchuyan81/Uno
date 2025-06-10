@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генератор иконок UNO</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        canvas {
+            border: 2px solid white;
+            margin: 10px;
+            border-radius: 10px;
+        }
+        button {
+            background: linear-gradient(to right, #ff8a00, #da1b60);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Генератор иконок для PWA UNO</h1>
+        <p>Нажмите кнопку для создания всех иконок</p>
+        
+        <button onclick="createAllIcons()">Создать все иконки</button>
+        <button onclick="downloadAllIcons()">Скачать все иконки</button>
+        
+        <div class="icon-grid" id="iconGrid"></div>
+    </div>
+
+    <script>
+        const iconSizes = [16, 32, 57, 60, 72, 76, 96, 114, 120, 128, 144, 152, 180, 192, 384, 512];
+        const createdIcons = {};
+
+        function createIcon(size) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+
+            // Фон с градиентом
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#1a2a6c');
+            gradient.addColorStop(0.5, '#ff8a00');
+            gradient.addColorStop(1, '#da1b60');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+
+            // Добавляем рамку
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = Math.max(2, size / 64);
+            ctx.strokeRect(0, 0, size, size);
+
+            // Рисуем текст UNO
+            ctx.fillStyle = 'white';
+            ctx.font = `bold ${size * 0.3}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('UNO', size / 2, size / 2);
+
+            // Добавляем тень для текста
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+            ctx.shadowBlur = size / 32;
+            ctx.shadowOffsetX = size / 64;
+            ctx.shadowOffsetY = size / 64;
+            ctx.fillText('UNO', size / 2, size / 2);
+
+            return canvas;
+        }
+
+        function createAllIcons() {
+            const iconGrid = document.getElementById('iconGrid');
+            iconGrid.innerHTML = '';
+
+            iconSizes.forEach(size => {
+                const canvas = createIcon(size);
+                canvas.style.width = '80px';
+                canvas.style.height = '80px';
+                canvas.title = `${size}x${size}`;
+                
+                const container = document.createElement('div');
+                container.innerHTML = `<div>${size}x${size}</div>`;
+                container.appendChild(canvas);
+                iconGrid.appendChild(container);
+
+                // Сохраняем canvas для скачивания
+                createdIcons[size] = canvas;
+            });
+        }
+
+        function downloadAllIcons() {
+            if (Object.keys(createdIcons).length === 0) {
+                alert('Сначала создайте иконки!');
+                return;
+            }
+
+            iconSizes.forEach(size => {
+                const canvas = createdIcons[size];
+                const link = document.createElement('a');
+                link.download = `icon-${size}x${size}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        }
+
+        // Создаем иконки при загрузке страницы
+        window.addEventListener('load', createAllIcons);
+    </script>
+</body>
+</html> 
+ 

@@ -4,6 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Игра UNO</title>
+    
+    <!-- PWA мета-теги -->
+    <meta name="description" content="Браузерная карточная игра UNO с ботами и анимациями">
+    <meta name="theme-color" content="#ff8a00">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="UNO">
+    <meta name="msapplication-TileColor" content="#1a2a6c">
+    <meta name="msapplication-tap-highlight" content="no">
+    
+    <!-- Манифест PWA -->
+    <link rel="manifest" href="./manifest.json">
+    
+    <!-- Иконки для разных устройств -->
+    <link rel="icon" type="image/png" sizes="32x32" href="./icons/icon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./icons/icon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180x180.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="./icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="./icons/icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="./icons/icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="./icons/icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="./icons/icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="./icons/icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="./icons/icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="57x57" href="./icons/icon-57x57.png">
+    
+    <!-- Прелоадер для улучшения производительности -->
+    <link rel="preload" href="./sw.js" as="script">
     <style>
         * {
             box-sizing: border-box;
@@ -1263,6 +1291,107 @@
                 }
             }
         }
+        
+        // Регистрация Service Worker для PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(function(registration) {
+                        console.log('SW регистрация успешна:', registration.scope);
+                        
+                        // Проверяем обновления Service Worker
+                        registration.addEventListener('updatefound', function() {
+                            console.log('Найдено обновление SW');
+                            const installingWorker = registration.installing;
+                            installingWorker.addEventListener('statechange', function() {
+                                if (installingWorker.state === 'installed') {
+                                    if (navigator.serviceWorker.controller) {
+                                        console.log('Новый контент доступен, страница будет обновлена');
+                                        // Можно показать уведомление об обновлении
+                                    } else {
+                                        console.log('Контент кэширован для офлайн использования');
+                                    }
+                                }
+                            });
+                        });
+                    })
+                    .catch(function(error) {
+                        console.log('SW регистрация не удалась:', error);
+                    });
+            });
+        }
+        
+        // Обработка события установки PWA
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', function(e) {
+            console.log('PWA: beforeinstallprompt сработал');
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Можно показать кнопку "Установить приложение"
+            showInstallButton();
+        });
+        
+        // Функция для показа кнопки установки
+        function showInstallButton() {
+            // Создаем кнопку установки, если её нет
+            if (!document.getElementById('install-button')) {
+                const installButton = document.createElement('button');
+                installButton.id = 'install-button';
+                installButton.textContent = '📱 Установить приложение';
+                installButton.style.cssText = `
+                    position: fixed;
+                    bottom: 20px;
+                    right: 20px;
+                    background: linear-gradient(to right, #ff8a00, #da1b60);
+                    color: white;
+                    border: none;
+                    padding: 12px 20px;
+                    border-radius: 25px;
+                    font-size: 14px;
+                    cursor: pointer;
+                    z-index: 1000;
+                    box-shadow: 0 4px 15px rgba(218, 27, 96, 0.4);
+                    transition: all 0.3s ease;
+                `;
+                
+                installButton.addEventListener('click', function() {
+                    if (deferredPrompt) {
+                        deferredPrompt.prompt();
+                        deferredPrompt.userChoice.then(function(choiceResult) {
+                            if (choiceResult.outcome === 'accepted') {
+                                console.log('Пользователь принял установку PWA');
+                            } else {
+                                console.log('Пользователь отклонил установку PWA');
+                            }
+                            deferredPrompt = null;
+                            installButton.remove();
+                        });
+                    }
+                });
+                
+                installButton.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-3px)';
+                    this.style.boxShadow = '0 6px 20px rgba(218, 27, 96, 0.6)';
+                });
+                
+                installButton.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = '0 4px 15px rgba(218, 27, 96, 0.4)';
+                });
+                
+                document.body.appendChild(installButton);
+            }
+        }
+        
+        // Скрываем кнопку установки после установки
+        window.addEventListener('appinstalled', function(evt) {
+            console.log('PWA установлено');
+            const installButton = document.getElementById('install-button');
+            if (installButton) {
+                installButton.remove();
+            }
+        });
     </script>
 </body>
 </html>
