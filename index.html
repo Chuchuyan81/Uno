@@ -862,7 +862,8 @@
         function drawCard() {
             if (currentPlayerIndex === 0) {
                 const currentPlayer = players[currentPlayerIndex];
-                if (deck.length > 0 && currentPlayer.hand.length < 10) {
+                // Убираем ограничение на 10 карт - игрок может взять сколько угодно
+                if (deck.length > 0) {
                     if (deck.length === 0) {
                         reshuffleDeck();
                     }
@@ -927,7 +928,10 @@
             const playerHand = document.getElementById('player-hand');
             const cardElement = playerHand.children[index];
             
-            // Создаем элемент для анимации
+            // Сначала получаем точные координаты карты ДО её удаления
+            const cardRect = cardElement.getBoundingClientRect();
+            
+            // Создаем элемент для анимации на точном месте оригинальной карты
             const animationCard = document.createElement('div');
             animationCard.className = `card ${card.color} card-animation`;
             animationCard.innerHTML = `
@@ -935,13 +939,18 @@
                 <div>${card.name}</div>
             `;
             
-            // Позиционируем
-            const cardRect = cardElement.getBoundingClientRect();
+            // Позиционируем анимационную карту точно на месте оригинала
             animationCard.style.left = `${cardRect.left}px`;
             animationCard.style.top = `${cardRect.top}px`;
+            animationCard.style.width = `${cardRect.width}px`;
+            animationCard.style.height = `${cardRect.height}px`;
             document.body.appendChild(animationCard);
             
-            // Начало анимации
+            // Теперь удаляем оригинальную карту из руки и обновляем отображение
+            currentPlayer.hand.splice(index, 1);
+            renderPlayerHand();
+            
+            // Начало анимации с небольшой задержкой
             setTimeout(() => {
                 const discardRect = document.getElementById('discard-pile').getBoundingClientRect();
                 
@@ -951,15 +960,15 @@
                 
                 setTimeout(() => {
                     animationCard.remove();
-                    completeCardPlay(index, card);
+                    completeCardPlay(card);
                 }, 700);
             }, 10);
         }
         
         // Завершение игры карты
-        function completeCardPlay(index, card) {
+        function completeCardPlay(card) {
             const currentPlayer = players[currentPlayerIndex];
-            currentPlayer.hand.splice(index, 1);
+            // Карта уже удалена из руки в animateCardPlay, просто добавляем в сброс
             discardPile.push(card);
             updateDiscardPile();
             
@@ -1044,25 +1053,24 @@
         // Взятие карты игроком
         function drawCardForPlayer(playerIndex) {
             const player = players[playerIndex];
-            if (player.hand.length < 10) {
-                if (deck.length === 0) {
-                    reshuffleDeck();
+            // Убираем ограничение на количество карт - любой игрок может взять сколько угодно
+            if (deck.length === 0) {
+                reshuffleDeck();
+            }
+            
+            if (deck.length > 0) {
+                const drawnCard = deck.pop();
+                player.hand.push(drawnCard);
+                
+                if (player.hand.length > 1) {
+                    player.unoSaid = false;
+                    player.pendingUno = false;
                 }
                 
-                if (deck.length > 0) {
-                    const drawnCard = deck.pop();
-                    player.hand.push(drawnCard);
-                    
-                    if (player.hand.length > 1) {
-                        player.unoSaid = false;
-                        player.pendingUno = false;
-                    }
-                    
-                    renderPlayers();
-                    
-                    if (playerIndex === 0) {
-                        renderPlayerHand();
-                    }
+                renderPlayers();
+                
+                if (playerIndex === 0) {
+                    renderPlayerHand();
                 }
             }
         }
