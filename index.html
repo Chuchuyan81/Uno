@@ -1321,6 +1321,13 @@
             });
         }
         
+        // Функция определения мобильного устройства
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                   (navigator.maxTouchPoints && navigator.maxTouchPoints > 1) ||
+                   window.innerWidth <= 768;
+        }
+        
         // Обработка события установки PWA
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', function(e) {
@@ -1328,68 +1335,159 @@
             e.preventDefault();
             deferredPrompt = e;
             
-            // Можно показать кнопку "Установить приложение"
-            showInstallButton();
+            // Показываем кнопку скачивания только на мобильных устройствах
+            if (isMobileDevice()) {
+                showDownloadButton();
+            }
         });
         
-        // Функция для показа кнопки установки
-        function showInstallButton() {
-            // Создаем кнопку установки, если её нет
-            if (!document.getElementById('install-button')) {
-                const installButton = document.createElement('button');
-                installButton.id = 'install-button';
-                installButton.textContent = '📱 Установить приложение';
-                installButton.style.cssText = `
+        // Функция для показа кнопки скачивания игры
+        function showDownloadButton() {
+            // Создаем кнопку скачивания, если её нет
+            if (!document.getElementById('download-button')) {
+                const downloadButton = document.createElement('button');
+                downloadButton.id = 'download-button';
+                downloadButton.innerHTML = '📱 Скачать игру';
+                downloadButton.style.cssText = `
                     position: fixed;
                     bottom: 20px;
-                    right: 20px;
+                    left: 50%;
+                    transform: translateX(-50%);
                     background: linear-gradient(to right, #ff8a00, #da1b60);
                     color: white;
                     border: none;
-                    padding: 12px 20px;
-                    border-radius: 25px;
-                    font-size: 14px;
+                    padding: 15px 25px;
+                    border-radius: 30px;
+                    font-size: 16px;
+                    font-weight: bold;
                     cursor: pointer;
                     z-index: 1000;
-                    box-shadow: 0 4px 15px rgba(218, 27, 96, 0.4);
+                    box-shadow: 0 6px 20px rgba(218, 27, 96, 0.5);
                     transition: all 0.3s ease;
+                    letter-spacing: 0.5px;
+                    animation: downloadButtonPulse 2s infinite;
                 `;
                 
-                installButton.addEventListener('click', function() {
+                // Добавляем анимацию пульсации
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes downloadButtonPulse {
+                        0% { transform: translateX(-50%) scale(1); }
+                        50% { transform: translateX(-50%) scale(1.05); box-shadow: 0 8px 25px rgba(218, 27, 96, 0.7); }
+                        100% { transform: translateX(-50%) scale(1); }
+                    }
+                    
+                    #download-button:hover {
+                        transform: translateX(-50%) scale(1.1) translateY(-2px) !important;
+                        box-shadow: 0 8px 30px rgba(218, 27, 96, 0.8) !important;
+                        text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+                    }
+                    
+                    #download-button:active {
+                        transform: translateX(-50%) scale(0.95) translateY(1px) !important;
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                downloadButton.addEventListener('click', function() {
                     if (deferredPrompt) {
-                        deferredPrompt.prompt();
-                        deferredPrompt.userChoice.then(function(choiceResult) {
-                            if (choiceResult.outcome === 'accepted') {
-                                console.log('Пользователь принял установку PWA');
-                            } else {
-                                console.log('Пользователь отклонил установку PWA');
-                            }
-                            deferredPrompt = null;
-                            installButton.remove();
-                        });
+                        // Анимация нажатия
+                        downloadButton.style.transform = 'translateX(-50%) scale(0.95)';
+                        
+                        setTimeout(() => {
+                            deferredPrompt.prompt();
+                            deferredPrompt.userChoice.then(function(choiceResult) {
+                                if (choiceResult.outcome === 'accepted') {
+                                    console.log('Пользователь установил PWA игру');
+                                    // Показываем сообщение об успешной установке
+                                    showInstallSuccessMessage();
+                                } else {
+                                    console.log('Пользователь отклонил установку PWA');
+                                    // Возвращаем кнопку в исходное состояние
+                                    downloadButton.style.transform = 'translateX(-50%) scale(1)';
+                                }
+                                deferredPrompt = null;
+                            });
+                        }, 150);
                     }
                 });
                 
-                installButton.addEventListener('mouseenter', function() {
-                    this.style.transform = 'translateY(-3px)';
-                    this.style.boxShadow = '0 6px 20px rgba(218, 27, 96, 0.6)';
-                });
+                // Добавляем кнопку на страницу
+                document.body.appendChild(downloadButton);
                 
-                installButton.addEventListener('mouseleave', function() {
-                    this.style.transform = 'translateY(0)';
-                    this.style.boxShadow = '0 4px 15px rgba(218, 27, 96, 0.4)';
-                });
-                
-                document.body.appendChild(installButton);
+                // Показываем подсказку через несколько секунд
+                setTimeout(() => {
+                    showDownloadHint();
+                }, 3000);
             }
         }
         
-        // Скрываем кнопку установки после установки
+        // Функция показа подсказки для скачивания
+        function showDownloadHint() {
+            const downloadButton = document.getElementById('download-button');
+            if (downloadButton && !document.getElementById('download-hint')) {
+                const hint = document.createElement('div');
+                hint.id = 'download-hint';
+                hint.textContent = 'Установи игру на свой телефон!';
+                hint.style.cssText = `
+                    position: fixed;
+                    bottom: 80px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: rgba(0, 0, 0, 0.8);
+                    color: white;
+                    padding: 8px 16px;
+                    border-radius: 20px;
+                    font-size: 14px;
+                    z-index: 999;
+                    opacity: 0;
+                    transition: opacity 0.5s ease;
+                    pointer-events: none;
+                    text-align: center;
+                    white-space: nowrap;
+                `;
+                
+                document.body.appendChild(hint);
+                
+                // Плавное появление
+                setTimeout(() => {
+                    hint.style.opacity = '1';
+                }, 100);
+                
+                // Исчезновение через 4 секунды
+                setTimeout(() => {
+                    hint.style.opacity = '0';
+                    setTimeout(() => {
+                        if (hint.parentNode) {
+                            hint.remove();
+                        }
+                    }, 500);
+                }, 4000);
+            }
+        }
+        
+        // Функция показа сообщения об успешной установке
+        function showInstallSuccessMessage() {
+            const downloadButton = document.getElementById('download-button');
+            if (downloadButton) {
+                downloadButton.innerHTML = '✅ Игра установлена!';
+                downloadButton.style.background = 'linear-gradient(to right, #2ecc71, #27ae60)';
+                
+                setTimeout(() => {
+                    downloadButton.style.transform = 'translateX(-50%) scale(0)';
+                    setTimeout(() => {
+                        downloadButton.remove();
+                    }, 300);
+                }, 2000);
+            }
+        }
+        
+        // Скрываем кнопку скачивания после установки
         window.addEventListener('appinstalled', function(evt) {
-            console.log('PWA установлено');
-            const installButton = document.getElementById('install-button');
-            if (installButton) {
-                installButton.remove();
+            console.log('PWA игра установлена');
+            const downloadButton = document.getElementById('download-button');
+            if (downloadButton) {
+                showInstallSuccessMessage();
             }
         });
     </script>
