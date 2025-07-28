@@ -922,10 +922,14 @@
             // Показываем подсказку если игрок должен сказать UNO
             if (currentPlayerIndex === 0 && humanPlayer.hand.length === 1 && humanPlayer.pendingUno && !humanPlayer.unoSaid) {
                 unoButton.classList.add('pending');
-                unoButton.textContent = 'Сказать UNO! (3 сек)';
+                // Время будет обновляться в счетчике
+                unoButton.textContent = 'Сказать UNO! (5 сек)';
             } else {
                 unoButton.classList.remove('pending');
                 unoButton.textContent = 'Сказать UNO!';
+                // Сбрасываем стили кнопки
+                unoButton.style.backgroundColor = '';
+                unoButton.style.color = '';
             }
         }
         
@@ -1165,59 +1169,68 @@
             discardPile.push(card);
             updateDiscardPile();
             
-            // Обработка UNO
-            if (currentPlayer.hand.length === 1 && !currentPlayer.unoSaid) {
-                if (currentPlayer.isHuman) {
-                    // Даем игроку время сказать UNO (3 секунды)
-                    currentPlayer.pendingUno = true;
-                    document.getElementById('uno-button').disabled = false;
-                    
-                    // Устанавливаем таймер для штрафа
-                    unoTimeout = setTimeout(() => {
-                        if (currentPlayer.pendingUno && !currentPlayer.unoSaid) {
-                            alert(`${currentPlayer.name} забыл сказать UNO! Штраф: +2 карты`);
-                            for (let i = 0; i < 2; i++) {
-                                drawCardForPlayer(currentPlayerIndex);
-                            }
-                            currentPlayer.unoSaid = false;
-                            currentPlayer.pendingUno = false;
-                            document.getElementById('uno-button').disabled = true;
-                            renderPlayerHand();
-                            renderPlayers();
-                            
-                            // Переход хода после штрафа
-                            setTimeout(() => {
-                                nextTurn();
-                            }, 1000);
+                    // Обработка UNO
+        if (currentPlayer.hand.length === 1 && !currentPlayer.unoSaid) {
+            if (currentPlayer.isHuman) {
+                // Даем игроку время сказать UNO (5 секунд вместо 3)
+                currentPlayer.pendingUno = true;
+                document.getElementById('uno-button').disabled = false;
+                
+                // Устанавливаем таймер для штрафа
+                unoTimeout = setTimeout(() => {
+                    if (currentPlayer.pendingUno && !currentPlayer.unoSaid) {
+                        alert(`${currentPlayer.name} забыл сказать UNO! Штраф: +2 карты`);
+                        for (let i = 0; i < 2; i++) {
+                            drawCardForPlayer(currentPlayerIndex);
                         }
-                    }, 3000); // 3 секунды на то, чтобы сказать UNO
-                    
-                    // Запускаем счетчик времени
-                    let timeLeft = 3;
-                    unoCountdown = setInterval(() => {
-                        timeLeft--;
+                        currentPlayer.unoSaid = false;
+                        currentPlayer.pendingUno = false;
                         const unoButton = document.getElementById('uno-button');
-                        if (timeLeft > 0 && currentPlayer.pendingUno && !currentPlayer.unoSaid) {
-                            unoButton.textContent = `Сказать UNO! (${timeLeft} сек)`;
-                        } else if (timeLeft <= 0) {
-                            clearInterval(unoCountdown);
-                            unoCountdown = null;
-                        }
-                    }, 1000);
-                    
-                    return; // Не переходим к следующему ходу пока не истечет время
-                } else {
-                    // Боты автоматически говорят UNO
-                    currentPlayer.unoSaid = true;
-                    setTimeout(() => {
-                        alert(`${currentPlayer.name} сказал UNO!`);
+                        unoButton.disabled = true;
+                        // Сбрасываем стили кнопки
+                        unoButton.style.backgroundColor = '';
+                        unoButton.style.color = '';
+                        renderPlayerHand();
                         renderPlayers();
-                    }, 500);
-                }
-            } else if (currentPlayer.hand.length > 1) {
-                currentPlayer.unoSaid = false;
-                currentPlayer.pendingUno = false;
+                        
+                        // Переход хода после штрафа
+                        setTimeout(() => {
+                            nextTurn();
+                        }, 1000);
+                    }
+                }, 5000); // 5 секунд на то, чтобы сказать UNO
+                
+                // Запускаем счетчик времени
+                let timeLeft = 5;
+                unoCountdown = setInterval(() => {
+                    timeLeft--;
+                    const unoButton = document.getElementById('uno-button');
+                    if (timeLeft > 0 && currentPlayer.pendingUno && !currentPlayer.unoSaid) {
+                        unoButton.textContent = `Сказать UNO! (${timeLeft} сек)`;
+                        // Добавляем визуальную обратную связь
+                        if (timeLeft <= 2) {
+                            unoButton.style.backgroundColor = '#ff4444';
+                            unoButton.style.color = 'white';
+                        }
+                    } else if (timeLeft <= 0) {
+                        clearInterval(unoCountdown);
+                        unoCountdown = null;
+                    }
+                }, 1000);
+                
+                return; // Не переходим к следующему ходу пока не истечет время
+            } else {
+                // Боты автоматически говорят UNO
+                currentPlayer.unoSaid = true;
+                setTimeout(() => {
+                    alert(`${currentPlayer.name} сказал UNO!`);
+                    renderPlayers();
+                }, 500);
             }
+        } else if (currentPlayer.hand.length > 1) {
+            currentPlayer.unoSaid = false;
+            currentPlayer.pendingUno = false;
+        }
             
             // Обработка действий карт
             handleCardAction(card);
@@ -1314,10 +1327,15 @@
         function sayUno() {
             if (currentPlayerIndex === 0) {
                 const currentPlayer = players[currentPlayerIndex];
-                if (currentPlayer.hand.length === 1 && !currentPlayer.unoSaid) {
+                if (currentPlayer.hand.length === 1 && !currentPlayer.unoSaid && currentPlayer.pendingUno) {
                     currentPlayer.unoSaid = true;
                     currentPlayer.pendingUno = false;
-                    document.getElementById('uno-button').disabled = true;
+                    const unoButton = document.getElementById('uno-button');
+                    unoButton.disabled = true;
+                    
+                    // Сбрасываем стили кнопки
+                    unoButton.style.backgroundColor = '';
+                    unoButton.style.color = '';
                     
                     // Отменяем таймер штрафа если он был установлен
                     if (unoTimeout) {
