@@ -896,20 +896,14 @@
                 playerHand.appendChild(cardElement);
             });
             
-            // Кнопка UNO
+            // Кнопка UNO - всегда видна, но активна только при одной карте
+            const unoButton = document.getElementById('uno-button');
+            unoButton.style.display = 'block';
+            
             if (currentPlayerIndex === 0 && humanPlayer.hand.length === 1 && !humanPlayer.unoSaid) {
-                document.getElementById('uno-button').style.display = 'block';
-                document.getElementById('uno-button').disabled = false;
-                
-                clearTimeout(unoTimeout);
-                unoTimeout = setTimeout(() => {
-                    if (humanPlayer.hand.length === 1 && !humanPlayer.unoSaid) {
-                        document.getElementById('uno-button').disabled = true;
-                    }
-                }, 5000);
+                unoButton.disabled = false;
             } else {
-                document.getElementById('uno-button').style.display = 'none';
-                document.getElementById('uno-button').disabled = true;
+                unoButton.disabled = true;
             }
         }
         
@@ -963,7 +957,6 @@
                     if (currentPlayer.hand.length > 1) {
                         currentPlayer.unoSaid = false;
                         currentPlayer.pendingUno = false;
-                        document.getElementById('uno-button').style.display = 'none';
                     }
                     
                     renderPlayerHand();
@@ -1141,20 +1134,15 @@
             // Обработка UNO
             if (currentPlayer.hand.length === 1 && !currentPlayer.unoSaid) {
                 if (currentPlayer.isHuman) {
-                    // Даем игроку время сказать UNO
-                    currentPlayer.pendingUno = true;
-                    setTimeout(() => {
-                        if (currentPlayer.hand.length === 1 && !currentPlayer.unoSaid && currentPlayer.pendingUno) {
-                            // Игрок забыл сказать UNO - штраф 2 карты
-                            alert(`${currentPlayer.name} забыл сказать UNO! Штраф: +2 карты`);
-                            for (let i = 0; i < 2; i++) {
-                                drawCardForPlayer(currentPlayerIndex);
-                            }
-                            currentPlayer.pendingUno = false;
-                            renderPlayerHand();
-                            renderPlayers();
-                        }
-                    }, 3000); // 3 секунды на то чтобы сказать UNO
+                    // Игрок сделал ход с одной картой, не нажав кнопку UNO - штраф
+                    alert(`${currentPlayer.name} забыл сказать UNO! Штраф: +2 карты`);
+                    for (let i = 0; i < 2; i++) {
+                        drawCardForPlayer(currentPlayerIndex);
+                    }
+                    currentPlayer.unoSaid = false;
+                    currentPlayer.pendingUno = false;
+                    renderPlayerHand();
+                    renderPlayers();
                 } else {
                     // Боты автоматически говорят UNO
                     currentPlayer.unoSaid = true;
@@ -1266,8 +1254,7 @@
                     currentPlayer.pendingUno = false;
                     document.getElementById('uno-button').disabled = true;
                     renderPlayers();
-                    
-                    clearTimeout(unoTimeout);
+                    alert(`${currentPlayer.name} сказал UNO!`);
                 }
             }
         }
